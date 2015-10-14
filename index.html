@@ -1,0 +1,294 @@
+<?php
+session_start();
+// 로그인체크
+if(!$_SESSION['login']){
+	header("Location: login.html");
+	exit();	
+}
+
+require_once './server/db_connect.php';
+
+$userId = $_SESSION['user_id']; //★(이름 보여주기 용도로 추가)
+
+// array  벗겨내기
+extract($_GET);
+if(!isset($category)){
+	$category = '';
+}
+
+//★--------------------------------------------
+$query = "SELECT * FROM market_user 
+			WHERE user_id = '{$userId}' ";  
+$result = mysql_query($query);
+$row = mysql_fetch_array($result);
+
+$userName = iconv("EUC-KR",  "UTF-8",  $row[user_name]);
+$userImage = iconv("EUC-KR",  "UTF-8",  $row[user_image]);
+//★--------------------------------------------
+
+// 상품 목록 페이지
+$query = "SELECT * FROM market_product ";
+if($category != ''){
+	$query .= " WHERE category = '{$category}' ";
+}
+$query .= " ORDER BY reg_datetime DESC ";
+
+$result = mysql_query($query);
+
+$html = '';
+$i = 0;
+$color = '';
+while($row = mysql_fetch_array($result)){
+	if($i++ % 2== 0){
+		$color = '#FFF';
+	}else{
+		$color = '#EEE';
+	}
+	
+	// 해당 상품의 유저 정보
+	$query = "SELECT * FROM market_user 
+				WHERE user_id = '{$row[reg_user_id]}' ";
+	$result2 = mysql_query($query);
+	$row2 = mysql_fetch_array($result2);
+	
+		
+	// 인코딩 변환
+	$product_name = iconv("EUC-KR",  "UTF-8",  $row[product_name]);
+	$alpha = iconv("EUC-KR",  "UTF-8",  $row[alpha]);
+	$info = iconv("EUC-KR",  "UTF-8",  $row[info]);
+	$category = iconv("EUC-KR",  "UTF-8",  $row[category]);
+	$reg_datetime = iconv("EUC-KR",  "UTF-8",  $row[reg_datetime]);
+	$price = iconv("EUC-KR",  "UTF-8",  $row[price]);
+	$image = iconv("EUC-KR",  "UTF-8",  $row[image1]);
+	$alpha = iconv("EUC-KR",  "UTF-8",  $row[alpha]);
+	$user_name = iconv("EUC-KR",  "UTF-8",  $row2[user_name]);
+	
+	if($category == "clothes"){
+		$category = "의류";
+	}else if($category == "books"){
+		$category = "서적";
+	}else if($category == "ballpen"){
+		$category = "필기류";
+	}else if($category == "whiteGoods"){
+		$category = "가전";
+	}else if($category == "furniture"){
+		$category = "가구";
+	}else{
+		$category = "기타";
+	}
+	
+	
+	// 해당 상품의 댓글 정보
+	$query = "SELECT *, r.seq as seq FROM market_user u , market_reply r
+				WHERE r.product_seq = '{$row[seq]}'
+				AND u.user_id = r.user_id ";
+		
+	$reply = "";			
+	$replyResult = mysql_query($query);
+	while($replyRow = @mysql_fetch_array($replyResult ) ){
+		$msg = iconv("EUC-KR",  "UTF-8",  $replyRow[msg]);
+		
+        $reply .= "<ul class='collection'>
+            <li class='collection-item avatar'>
+              <img src='./uploads/{$replyRow[user_image]}' alt=''{$replyRow[user_id]}'' class='circle'>
+              <span class='title'>{$replyRow[user_id]}</span>
+              <p>{$msg} </p>";
+        if($_SESSION['user_id'] == $replyRow['user_id']){
+            $reply .= "<a href='javascript:return false;' data-seq='{$replyRow[seq]}' class='delReply secondary-content'><i class='mdi-action-delete'></i></a>";
+        }
+        $reply .= "</li></ul>";	
+	}
+	
+	
+	$html .= "
+		 <div class='card'>
+	        <div class='card-image waves-effect waves-block waves-light'>
+	          <img class='activator' src='./uploads/{$image}'>
+	        </div>
+	        <div class='card-content'>
+	          <span class='card-title activator grey-text text-darken-4'>{$product_name} (".number_format($price)."원)<i class='mdi-navigation-more-vert right'></i></span>
+	          <p><strong>{$user_name}</strong> <a href='tel:{$row2[phone]}'>{$row2[phone]}</a></p>
+	        </div>
+	        <div class='card-reveal'>
+	          <a style='width: 100%;' href='detail.html?seq={$row[seq]}' class='waves-effect waves-light btn-large'>새창보기</a>
+	          <span class='card-title grey-text text-darken-4'>{$product_name} (".number_format($price)."원)<i class='mdi-navigation-close right'></i></span>
+	          <p> 
+	          	  <strong>카테고리</strong> :<h4>{$category}</h4><br/>
+	          	  <strong>+alpha</strong> : <img src='./images/{$alpha}' alt='{$product_name}' style='margin-left: 15px;' class='img-thumbnail' /><br/><br/>
+	          	  <strong>상품정보</strong> : <pre>{$info}</pre><br/>
+	          	  <strong>동록일</strong> : {$reg_datetime}<br/><br/>
+	          	  <div style='text-align:center;'>
+	                <a style='width: 90%;' data-seq='{$row[seq]}' class='waves-effect waves-light btn-large basketBtn'>장바구니 담기</a>
+                    </div>              
+	              {$reply}
+	          </p>
+              <div class='row'>
+                <div class='input-field col s12'>
+                  <textarea id='textarea{$row[seq]}' class='materialize-textarea'></textarea>
+                  <label for='textarea{$row[seq]}'>댓글을 남겨주세요..</label>
+	          	  <div style='text-align:right;'>
+	                <a style='width: 50%;' data-seq='{$row[seq]}' class='waves-effect waves-light btn replyBtn'>등록</a>
+                    </div>                    
+                </div>
+              </div>
+	        </div>
+	      </div>";
+}
+
+?>
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<meta charset="utf-8" />
+	<title>마켓</title> 
+ 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  	<meta name="apple-mobile-web-app-capable" content="yes">
+  	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta content="text/html; charset=UTF-8" />
+ 	<!-- Compiled and minified CSS -->
+ 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
+	<script src="../js/jquery-1.9.1.min.js"></script>
+ 	 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/js/materialize.min.js"></script>
+     <style>
+     	li a{color : #333;}
+     	h3, strong{
+     		color: tomato;
+     	}
+     	h4{
+     		font-weight: bold;
+     	}
+     </style>
+</head> 
+<body> 
+<div class="navbar-fixed">
+	<nav class="blue darken-3">
+	    <div class="nav-wrapper">
+		      <a href="#!" class="brand-logo" style="width: 80%;">
+			    <div class="input-field">
+			      <input id="search" type="search" class="right" required>
+			      <label for="search"><i class="mdi-action-search"></i></label>
+			      <i class="mdi-navigation-close"></i>
+			    </div>
+				<a href="index.html"><i class="mdi-action-home right"></i></a>
+				
+		      </a>			  
+
+		      <a href="#"  data-activates="mobile-nav" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+		      <ul class="side-nav" id="mobile-nav" >
+		      	<li><img src="./uploads/<?=$userImage?>" alt="" style="width: 100%;" class="img-thumbnail"></li>
+		      	<li><h4 style="color: #333;"><?=$userName?> 님</h4></li>
+		        <a href="logout.html" class="green lighten-1 waves-effect waves-light btn" style="margin:3px;">로그아웃</a>
+		        <a href="my_page.html" class="green waves-effect waves-light btn" style="margin:3px;">내정보</a></li>
+		        
+		        <a href="my_product.html" class="waves-effect waves-light btn" style="margin:3px;">마이페이지</a>
+		        <a href="register_product.html" class="waves-effect waves-light btn" style="margin:3px;">상품올리기</a>
+		        <li><a class="collection-item" href="index.html">전체</a></li>
+		        <li><a class="collection-item" href="index.html?category=clothes">의류</a></li>
+		        <li><a class="collection-item" href="index.html?category=books">서적</a></li>
+		        <li><a class="collection-item" href="index.html?category=ballpen">필기류</a></li>
+		        <li><a class="collection-item" href="index.html?category=whiteGoods">가전</a></li>
+		        <li><a class="collection-item" href="index.html?category=furniture">가구</a></li>
+		        <li><a class="collection-item" href="index.html?category=etc">기타</a></li>
+		      </ul>
+	    </div>
+	  </nav>
+  </div>	
+		      	
+      <div class="container">
+		<?=$html?>
+	</div>
+    
+</body>
+<script>
+$(function(){
+	$(".button-collapse").sideNav();
+	
+	$(".basketBtn").on('click', function(){
+		var seq = $(this).attr('data-seq');
+		$.ajax({
+			  type: "POST",
+			  dataType: 'jsonp',										  			  
+			  url: "http://dymarket.dothome.co.kr/shop/server/insert_basket.php",
+			  data: {
+			  	seq : seq
+			  },
+			  
+			  success: function(data){
+			  	if(data.success == 'success'){
+			  		alert("장바구니담았습니다.");
+			  	}else if(data.success == 'has'){
+			  		alert("이미 장바구니에 있습니다.");
+			  	}else{
+			  		alert("에러발생!!");
+			  	}
+			  }
+		});	
+			
+	});
+	
+	
+	$("#search").on('keydown', function(e){
+		
+		if(e.keyCode == 13){
+			if($(this).val().length <2){
+				alert("두글자 이상 입력하세요.");
+				return;
+			}			
+			window.location.href="search.html?q=" + $(this).val();	
+		}
+	});
+	
+	$(".replyBtn").on('click', function(){
+	    var $this = $(this),
+	        seq = $this.attr('data-seq');
+    	$.ajax({
+    		  type: "POST",
+    		  dataType: 'jsonp',								
+    		  url: "http://dymarket.dothome.co.kr/shop/server/reply.php",
+    		  data: {
+	            productSeq : seq,
+	            msg : $("#textarea" + seq).val()
+    		  },
+    		  
+    		  success: function(data){
+    		  	if(data.success == 'success'){
+    		  		alert("등록되었습니다.");
+    		  		window.location.reload();
+    		  	}
+    		  	
+    		  }
+    	});	
+			        
+	});
+	
+	/**
+	 * 댓글 삭제 
+	 */	
+	$(".delReply").on('click', function(){
+	    var $this = $(this),
+	        seq = $this.attr('data-seq');
+	        
+    	$.ajax({
+    		  type: "POST",
+    		  dataType: 'jsonp',								
+    		  url: "./server/del_reply.php", 
+    		  data: {
+	            seq : seq
+    		  },
+    		  
+    		  success: function(data){
+    		  	if(data.success == 'success'){
+    		  		alert("삭제되었습니다.");
+    		  		$this.parent().parent().remove();
+    		  	}
+    		  	
+    		  }
+    	});	
+			        
+	});	
+});
+
+
+	
+</script>
+</html>
