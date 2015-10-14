@@ -1,0 +1,249 @@
+<?php
+session_start();
+// 로그인체크
+if(!$_SESSION['login']){
+	header("Location: login.html");
+	exit();	
+}
+//--------------------------------------------------------
+require_once './server/db_connect.php';
+
+$userId = $_SESSION['user_id'];
+
+// array  벗겨내기
+extract($_GET);
+if(!isset($category)){
+	$category = '';
+}
+
+$query2 = "SELECT * FROM market_user 
+			WHERE user_id = '{$userId}' ";  
+$result2 = mysql_query($query2);
+$row2 = mysql_fetch_array($result2);
+
+$userName = iconv("EUC-KR",  "UTF-8",  $row2[user_name]);
+//---------------------------------------------------------
+
+?>
+
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<meta charset="utf-8" />
+	<title>마켓어플</title> 
+ 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  	<meta name="apple-mobile-web-app-capable" content="yes">
+  	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta content="text/html; charset=UTF-8" />
+ 	<!-- Compiled and minified CSS -->
+ 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
+	<script src="../js/jquery-1.9.1.min.js"></script>
+ 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/js/materialize.min.js"></script>
+</head> 
+<body> 
+	
+<div class="navbar-fixed">
+	<nav class="blue darken-3">
+	    <div class="nav-wrapper">
+		      <a href="#!" class="brand-logo" style="width: 80%;">
+			    <div class="input-field">
+			      <input id="search" type="search" class="right" required>
+			      <label for="search"><i class="mdi-action-search"></i></label>
+			      <i class="mdi-navigation-close"></i>
+			    </div>
+				<a href="index.html"><i class="mdi-action-home right"></i></a>
+				
+		      </a>
+
+		      <a href="#"  data-activates="mobile-nav" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+		      <ul class="side-nav" id="mobile-nav" >
+		      	<li><img src="./uploads/<?=$_SESSION['user_image']?>" alt="" style="width: 100%;" class="img-thumbnail"></li>
+		      	<li><h4 style="color: #333;"><?=$userName?> 님</h4></li>
+		        <a href="logout.html" class="green lighten-1 waves-effect waves-light btn" style="margin:3px;">로그아웃</a>
+		        <a href="my_page.html" class="green waves-effect waves-light btn" style="margin:3px;">내정보</a></li>
+		        
+		        <a href="my_product.html" class="waves-effect waves-light btn" style="margin:3px;">마이페이지</a>
+		        <a href="register_product.html" class="waves-effect waves-light btn" style="margin:3px;">상품올리기</a>
+		        <li><a class="collection-item" href="index.html">전체</a></li>
+		        <li><a class="collection-item" href="index.html?category=clothes">의류</a></li>
+		        <li><a class="collection-item" href="index.html?category=books">서적</a></li>
+		        <li><a class="collection-item" href="index.html?category=ballpen">필기류</a></li>
+		        <li><a class="collection-item" href="index.html?category=whiteGoods">가전</a></li>
+		        <li><a class="collection-item" href="index.html?category=furniture">가구</a></li>
+		        <li><a class="collection-item" href="index.html?category=etc">기타</a></li>
+		      </ul>
+	    </div>		
+	  </nav>
+  </div>
+  	
+      <div class="container">
+			  <div class="row">
+			    <form class="col s12" id="frm" >
+			    	
+					<img src="./images/no.jpg" id="uploadImage" alt="" style="width: 100%;" class="img-thumbnail">
+					<div class="input-field" style="margin-top: 30px;">
+						<a href="javascript:return false;" style="width:100%;" class="waves-effect waves-light btn-large" id="pic">사진등록</a>
+						<input value="no.jpg" id="productImage"  name="productImage" type="hidden" />			    	
+					</div>
+						    	
+			       <div class="input-field">   
+			          <select id="category" name="category">
+			          	<option value="clothes">의류</option>
+			          	<option value="books">서적</option>
+			          	<option value="ballpen">필기류</option>
+			          	<option value="whiteGoods">가전</option>
+			          	<option value="furniture">가구</option>
+			          	<option value="etc">기타</option>
+			          </select>
+			        </div>
+			        		
+					<div class="input-field" style="margin-top: 30px; margin-bottom: 60px;">		        			
+						<p>
+					      <input name="alpha" type="radio" id="alpha1" value="book.png" />
+					      <label for="alpha1"><img src="./images/book.png" alt="" style="width: 100%;" class="img-thumbnail"></label>
+					    </p>
+					    <p>
+					      <input name="alpha" type="radio" id="alpha2" value="book.png" />
+					      <label for="alpha2"><img src="./images/coffee.png" alt="" style="width: 100%;" class="img-thumbnail"></label>
+					    </p>
+						<p>
+					      <input name="alpha" type="radio" id="alpha3" value="love.png"  />
+					      <label for="alpha3"><img src="./images/love.png" alt="" style="width: 100%;" class="img-thumbnail"></label>
+					    </p>
+					    <p>
+					      <input name="alpha" type="radio" id="alpha4" value="movie.jpg" />
+					      <label for="alpha4"><img src="./images/movie.jpg" alt="" style="width: 100%;" class="img-thumbnail"></label>
+					    </p>
+					    <p>
+					      <input name="alpha" type="radio" id="alpha5" value="rice.png" />
+					      <label for="alpha5"><img src="./images/rice.png" alt="" style="width: 100%;" class="img-thumbnail"></label>
+					    </p>
+					</div>			        
+					
+					    			        						    	
+				
+			        <div class="input-field">
+			          <i class="mdi-action-class prefix"></i>
+			          <input id="productName" name="productName" type="text" class="validate">
+			          <label for="productName">상품명</label>
+			        </div>
+			        
+			        <div class="input-field">
+			          <i class="mdi-action-wallet-travel prefix"></i>
+			          <input id="price" name="price" type="number" class="validate">
+			          <label for="price">가격(원)</label>
+			        </div>			
+			        
+			        
+			        <div class="input-field">
+			          <i class="mdi-action-assignment-ind prefix"></i>
+			          <textarea class="materialize-textarea" rows="5" id="info" name="info"  class="validate"></textarea>
+			          <label for="info">상품정보</label>
+			        </div>		
+			        
+			       
+			    </form>
+		   </div> 
+	    <div style="text-align: center;  margin-top: 100px;">
+	  	 	 <a style="width: 90%;" class="waves-effect waves-light btn-large" id="regBtn2">등록</a>
+	  	 </div>			    
+      </div>
+    
+</body>
+<script>
+$(".button-collapse").sideNav();
+ $('select').material_select();
+/**
+ * 등록버튼
+ */
+$("#regBtn2").on('click', function(){
+	var productName = $("#productName").val();
+	if(!productName){
+		 Materialize.toast('상품명을 입력하세요.', 4000);
+		 return;
+	}
+	
+	var alpha = $("input:checked").val();
+	if(!alpha){
+		 Materialize.toast('알파아이콘을 선택하세요.', 4000);
+		 return;
+	}	
+		
+	
+	var price = $("#price").val();
+	if(!price){
+		 Materialize.toast('가격을 입력하세요.', 4000);
+		 return;
+	}
+	
+	var productImage = $("#productImage").val();
+	if(!productImage){
+		 Materialize.toast('상품이미지를 등록하세요.', 4000);
+		 return;
+	}
+	
+	// 상품정보
+	var info = $("#info").val();
+	
+	// ajax 로 상품 등록처리
+	$.ajax({
+		  type: "POST",
+		  dataType: 'jsonp',								// 크로스 도메인이유로 jsonp 처리		  			  
+		  url: "http://dymarket.dothome.co.kr/shop/server/register_product.php",
+		  data: {
+		  		alpha : alpha,
+			  	productName : productName,
+			  	price : price,
+			  	productImage : productImage,
+			  	category : $("#category").val(),
+			  	info : info
+		  },
+		  // 성공시 인덱스 페이지로 이동처리 
+		  success: function(data){
+		  	if(data.success == 'success'){
+		  		alert("등록되었습니다.");
+		  	}else{
+		  		alert("오류가 발생되었습니다.");
+		  	}
+	  		// 메인페이지로 이동
+		  	setTimeout(function(){
+		  		window.location.href ='index.html';
+		  	}, 2000);		  	
+
+		  }
+	});	
+	
+	
+});
+
+// 사진 버튼 클릭시 안드로이드 이미지 선택 띄우기 
+$("#pic").on('click', function(){
+	if(window.android){
+		window.android.onGetPicture("pic");     		
+ 	}
+});
+
+$("#search").on('keydown', function(e){
+	
+	if(e.keyCode == 13){
+		if($(this).val().length <2){
+			alert("두글자 이상 입력하세요.");
+			return;
+		}			
+		window.location.href="search.html?q=" + $(this).val();	
+	}
+});
+	
+
+ /**
+  * 업로드된 이미지 파일
+  */
+ function uploadFileName(image){
+ 	var $img = $("#uploadImage");
+ 	$img.attr("src", "./uploads/" + image);
+ 	$("#productImage").val(image);
+ 	alert("이미지를 등록했습니다.");
+ }
+	
+</script>
+</html>

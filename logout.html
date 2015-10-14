@@ -1,0 +1,50 @@
+<?php
+session_start();
+session_destroy();
+
+?>
+
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<meta charset="utf-8" />
+	<title>마켓어플</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  	<meta name="apple-mobile-web-app-capable" content="yes">
+  	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta content="text/html; charset=UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+ 	<!-- Compiled and minified CSS -->
+ 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
+	<script src="../js/jquery-1.9.1.min.js"></script>
+ 	 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/js/materialize.min.js"></script>
+     
+</head> 
+<body> 
+	  
+	<!-- Modal Structure -->
+	  <div id="modal1" class="modal">
+	    <div class="modal-content">
+	      <h4>알림</h4>
+	      <p>로그아웃되었습니다.</p>
+	    </div>
+	    <div class="modal-footer">
+	      <a href="#" id="closeBtn" class=" modal-action modal-close waves-effect waves-green btn-flat">확인</a>
+	    </div>
+	  </div>	  
+	    
+</body>
+<script>
+$(document).ready(function(){
+	$('#modal1').leanModal();
+	$('#modal1').openModal();	
+	
+	// 닫기 클릭시 로그인 페이지로 재이동
+	$("#closeBtn").on('click', function(){
+		window.location.href = "login.html";
+	});
+	
+      	
+ });
+</script>
+</html>

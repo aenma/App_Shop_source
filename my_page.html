@@ -1,0 +1,247 @@
+<?php
+session_start();
+// 로그인체크
+if(!$_SESSION['login']){
+	header("Location: login.html");
+	exit();	
+}
+
+require_once './server/db_connect.php';
+
+$userId = $_SESSION['user_id'];
+
+// array  벗겨내기
+extract($_POST);
+// 내 유저 정보 가져오기 
+$query = "SELECT * FROM market_user 
+			WHERE user_id = '{$userId}' ";  
+$result = mysql_query($query);
+$row = mysql_fetch_array($result);
+
+// 인코딩 변환
+$userImage = iconv("EUC-KR",  "UTF-8",  $row[user_image]);
+$userName = iconv("EUC-KR",  "UTF-8",  $row[user_name]);
+$userClass = iconv("EUC-KR",  "UTF-8",  $row[user_class]);
+$startPlace = iconv("EUC-KR",  "UTF-8",  $row[start_place]);
+$phone = iconv("EUC-KR",  "UTF-8",  $row[phone]);
+
+?>
+
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<meta charset="utf-8" />
+	<title>마켓어플</title> 
+ 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  	<meta name="apple-mobile-web-app-capable" content="yes">
+  	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta content="text/html; charset=UTF-8" />
+ 	<!-- Compiled and minified CSS -->
+ 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/css/materialize.min.css">
+	<script src="../js/jquery-1.9.1.min.js"></script>
+ 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.96.1/js/materialize.min.js"></script>
+     
+</head> 
+<body> 
+	
+<div class="navbar-fixed">
+	<nav class="blue darken-3">
+	    <div class="nav-wrapper">
+		      <a href="#!" class="brand-logo" style="width: 80%;">
+			    <div class="input-field">
+			      <input id="search" type="search" class="right" required>
+			      <label for="search"><i class="mdi-action-search"></i></label>
+			      <i class="mdi-navigation-close"></i>
+			    </div>
+				<a href="index.html"><i class="mdi-action-home right"></i></a>
+				
+		      </a>
+
+		      <a href="#"  data-activates="mobile-nav" class="button-collapse"><i class="mdi-navigation-menu"></i></a>
+		      <ul class="side-nav" id="mobile-nav" >
+		      	<li><img src="./uploads/<?=$userImage?>" alt="" style="width: 100%;" class="img-thumbnail"></li>
+		      	<li><h4 style="color: #333;"><?=$userName?> 님</h4></li>
+		        <a href="logout.html" class="green lighten-1 waves-effect waves-light btn" style="margin:3px;">로그아웃</a>
+		        <a href="my_page.html" class="green waves-effect waves-light btn" style="margin:3px;">내정보</a></li>
+		        
+		        <a href="my_product.html" class="waves-effect waves-light btn" style="margin:3px;">마이페이지</a>
+		        <a href="register_product.html" class="waves-effect waves-light btn" style="margin:3px;">상품올리기</a>
+		        <li><a class="collection-item" href="index.html">전체</a></li>
+		        <li><a class="collection-item" href="index.html?category=clothes">의류</a></li>
+		        <li><a class="collection-item" href="index.html?category=books">서적</a></li>
+		        <li><a class="collection-item" href="index.html?category=ballpen">필기류</a></li>
+		        <li><a class="collection-item" href="index.html?category=whiteGoods">가전</a></li>
+		        <li><a class="collection-item" href="index.html?category=furniture">가구</a></li>
+		        <li><a class="collection-item" href="index.html?category=etc">기타</a></li>
+		      </ul>
+	    </div>
+	  </nav>
+  </div>		
+  	
+      <div class="container" style="margin-top: 30px;">
+			  <div class="row">
+			    <form class="col s12" id="frm" method="post">
+			    	
+					<img src="./uploads/<?=$userImage?>" id="uploadImage" alt="" style="width: 100%;" class="img-thumbnail">
+					<div class="input-field" style="margin-top: 30px;">
+						<a href="javascript:return false;" style="width:100%;" class="waves-effect waves-light btn-large" id="pic">유저이미지등록</a>
+						<input value="<?=$userImage?>" id="userImage"  name="userImage" type="hidden" />			    	
+					</div>
+								    	
+	
+			        <div class="input-field">
+			          <i class="mdi-action-face-unlock prefix"></i>
+			          <input id="userId" value="<?=$userId?>" readonly="readonly" type="text" class="validate">
+			          <label for="userId">아이디</label>
+			        </div>
+			        
+			        <div class="input-field">
+			          <i class="mdi-action-assignment-ind prefix"></i>
+			          <input id="userName" value="<?=$userName?>" type="text" class="validate">
+			          <label for="userName">이름</label>
+			        </div>					        	
+			        
+			        <div class="input-field">
+			          <i class="mdi-action-class prefix"></i>
+			          <input id="userClass" value="<?=$userClass?>" type="text" class="validate">
+			          <label for="userClass">학과</label>
+			        </div>			
+			        
+			        <div class="input-field">
+			          <i class="mdi-action-https prefix"></i>
+			          <input id="pwd" value="" type="password" class="validate">
+			          <label for="pwd">비밀번호(변경시에만 입력해주세요)</label>
+			        </div>
+			        
+			        <div class="input-field">
+			          <i class="mdi-action-https prefix"></i>
+			          <input id="rePwd" value="" type="password" class="validate">
+			          <label for="rePwd">비밀번호확인</label>
+			        </div>
+			        
+			        <div class="input-field">
+			          <i class="mdi-communication-call prefix"></i>
+			          <input id="phone" value="<?=$phone?>" type="tel" class="validate">
+			          <label for="phone">연락처</label>
+			        </div>	
+			        
+				  <!-- Switch -->
+				  <!--
+				  <div class="input-field">
+				  	
+					  <div class="switch">
+					  	<i class="mdi-maps-directions-car prefix"></i>
+						<label>
+					      미소지자
+					      <input value="car" id="userFlag" name="userFlag" type="checkbox">
+					      <span class="lever"></span>
+					      차량소지자
+					    </label>
+					  </div>
+				  </div>
+						-->	        		        
+			        
+			      </div>
+			    </form>
+			    
+	    <div style="text-align: center; margin-top: 50px;">
+	  	 	 <a style="width: 90%;" class="waves-effect waves-light btn-large" id="joinBtn">회원정보수정</a>
+	  	 </div>			    
+      </div>
+    
+</body>
+<script>
+$(".button-collapse").sideNav();
+/**
+ * 가입버튼
+ */
+$("#joinBtn").on('click', function(){
+
+	var userName = $("#userName").val();
+	if(!userName){
+		 Materialize.toast('이름을 입력하세요.', 4000);
+		 return;
+	}	
+		
+	var userClass = $("#userClass").val();
+	if(!userClass){
+		 Materialize.toast('학과를 입력하세요.', 4000);
+		 return;
+	}
+	
+	var pwd = $("#pwd").val();
+	var rePwd = $("#rePwd").val();
+
+	if(pwd != rePwd){
+		 Materialize.toast('비밀번호가 다릅니다.', 4000);
+		 return;
+	}		
+	
+	var phone = $("#phone").val();
+	if(!phone){
+		 Materialize.toast('전화번호를 입력하세요.', 4000);
+		 return;
+	}			
+	
+	var userImage = $("#userImage").val();	
+	
+
+	$.ajax({
+		  type: "POST",
+		  dataType: 'jsonp',								// 크로스 도메인이유로 jsonp 처리		  			  
+		  url: "http://dymarket.dothome.co.kr/shop/server/modify_user.php",
+		  data: {
+		  	userImage : userImage,
+		  	userName : userName,
+		  	userClass : userClass,
+		  	pwd : pwd,
+		  	phone : phone
+		  },
+		  
+		  success: function(data){
+		  	if(data.success == 'success'){
+		  		alert("수정 되었습니다.");
+		  	}else{
+		  		alert("수정 실패!!");
+		  	}
+		  	// 메인페이지로 이동
+		  	setTimeout(function(){
+		  		window.location.href ='index.html';
+		  	}, 2000);
+		  		
+		  }
+	});	
+		
+
+			
+});
+
+$("#search").on('keydown', function(e){
+	
+	if(e.keyCode == 13){
+		if($(this).val().length <2){
+			alert("두글자 이상 입력하세요.");
+			return;
+		}			
+		window.location.href="search.html?q=" + $(this).val();	
+	}
+});			
+
+// 사진 버튼 클릭시 안드로이드 이미지 선택 띄우기 
+$("#pic").on('click', function(){
+	if(window.android){
+		window.android.onGetPicture("pic");     		
+ 	}
+});
+	
+ /**
+  * 업로드된 이미지 파일
+  */
+ function uploadFileName(image){
+ 	var $img = $("#uploadImage");
+ 	$img.attr("src", "./uploads/" + image);
+ 	$("#userImage").val(image);
+	alert("이미지를 등록했습니다.");
+ }	
+</script>
+</html>
